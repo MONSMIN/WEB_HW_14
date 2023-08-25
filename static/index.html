@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Contact Management</title>
+</head>
+<body>
+    <h1>Contact Management</h1>
+
+    <h2>Create New Contact:</h2>
+    <form id="createContactForm">
+        <label for="firstName">First Name:</label>
+        <input type="text" id="firstName" required><br>
+        <label for="lastName">Last Name:</label>
+        <input type="text" id="lastName" required><br>
+        <label for="email">Email:</label>
+        <input type="email" id="email" required><br>
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="text" id="phoneNumber" required><br>
+        <label for="birthday">Birthday:</label>
+        <input type="date" id="birthday" required><br>
+        <label for="extraData">Extra Data:</label>
+        <input type="text" id="extraData"><br>
+        <button type="submit">Create Contact</button>
+    </form>
+
+    <h2>Contact List:</h2>
+    <ul id="contactList"></ul>
+
+    <script>
+        async function fetchContacts() {
+            try {
+                const response = await fetch('/api/contacts/');
+                if (!response.ok) {
+                    throw new Error('Error fetching contacts');
+                }
+
+                const contacts = await response.json();
+                const contactList = document.getElementById('contactList');
+                contactList.innerHTML = '';
+                contacts.forEach((contact) => {
+                    const contactItem = document.createElement('li');
+                    contactItem.textContent = `${contact.first_name} ${contact.last_name} - Email: ${contact.email}`;
+                    contactList.appendChild(contactItem);
+                });
+            } catch (error) {
+                console.error(error);
+                alert('Error fetching contacts');
+            }
+        }
+
+        document.getElementById('createContactForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const data = {
+                first_name: formData.get('firstName'),
+                last_name: formData.get('lastName'),
+                email: formData.get('email'),
+                phone_number: formData.get('phoneNumber'),
+                birthday: formData.get('birthday'),
+                extra_data: formData.get('extraData') || null,
+            };
+
+            try {
+                const response = await fetch('/api/contacts/', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(data),
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error creating contact');
+                }
+
+                await fetchContacts();
+            } catch (error) {
+                console.error(error);
+                alert('Error creating contact');
+            }
+        });
+
+        fetchContacts();
+    </script>
+</body>
+</html>
